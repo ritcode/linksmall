@@ -1,24 +1,24 @@
 const express = require('express')
 const app = express()
-let links = require('./links.json')
 const {addLink} = require('./handler/addLink')
 const {generateRoute} = require('./handler/generateRoute')
-
+let links = require('./links.json')
+const port = process.env.PORT || 3333
 
 app.use(express.urlencoded({extended:true}))
 app.use('/', express.static(__dirname+"/public"))
 
 app.get('/short', (req, res) => {
-    // console.log(typeof(req.query.add), typeof(req.query.custom))
     if(req.query.custom) {
         if(links[req.query.custom]) {
-            res.send("Already aquired!!!!")
+            res.send({taken:true,message:"Already acquired!!!!"})
         }
         else {
             addLink(req.query.add, req.query.custom)
             res.send(`
-            <a href="https:ritweb.ml/${req.query.custom}"> https:ritweb.ml/${req.query.custom}</a>
-        `)
+                <h4>Shortened link : </h4>
+                <a href="https://linksmall.herokuapp.com/${req.query.custom}"> https://linksmall.herokuapp.com/${req.query.custom}</a>
+            `)
         }
         
     }
@@ -29,7 +29,8 @@ app.get('/short', (req, res) => {
         }
         addLink(req.query.add, route)
         res.send(`
-            <a href="https:ritweb.ml/${route}"> https:ritweb.ml/${route}</a>
+            <h4>Shortened link : </h4>
+            <a href="https://linksmall.herokuapp.com/${route}">https://linksmall.herokuapp.com/${route}</a>
         `)
     }
 })
@@ -39,10 +40,13 @@ app.get('/:route', (req, res) => {
         res.redirect(links[req.params.route])
     }
     else {
-        res.send("ERROR 404: No such url find")
+        res.status(404).send(`
+            <h4>No link found on this path</h4>
+            Goto <a href="https://linksmall.herokuapp.com">linksmall</a> to create one.
+        `)
     }
 })
 
-app.listen(process.env.PORT || 3333, () => {
-    console.log("Server started on port 3333")
+app.listen(port, () => {
+    console.log("Server started on ",port)
 })
